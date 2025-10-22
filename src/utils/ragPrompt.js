@@ -1,19 +1,24 @@
 
-export const generateQuestionsPrompt = (jobDescription) => {
-  return `You are an expert technical interviewer. Based on the following job description, generate exactly 3 relevant, specific interview questions that would help assess if a candidate is suitable for this role.
+export const generateQuestionsPrompt = (jobDescription, numberOfQuestions = 10) => {
+  return `You are an expert technical interviewer. Based on the following job description, generate exactly ${numberOfQuestions} relevant, specific interview questions that would help assess if a candidate is suitable for this role.
 
 Job Description:
 ${jobDescription}
 
 Requirements:
-- Generate exactly 3 questions
-- Questions should be relevant to the job requirements
-- Mix of technical and behavioral questions based on the JD
-- Questions should be clear and specific
+- Generate exactly ${numberOfQuestions} questions
+- Include a mix of:
+  * Technical questions (40-50% of questions) - specific to required skills and technologies
+  * Behavioral/situational questions (30-40%) - STAR method friendly
+  * Experience-based questions (20-30%) - based on role requirements
+- Questions should be clear, specific, and directly related to the JD
+- Progress from easier to more challenging questions
 - Format: Return as a JSON array of strings
 
 Example format:
-["Question 1 here?", "Question 2 here?", "Question 3 here?"]`;
+["Question 1 here?", "Question 2 here?", "Question 3 here?", ...]
+
+IMPORTANT: Return ONLY the JSON array, no additional text or explanation.`;
 };
 
 

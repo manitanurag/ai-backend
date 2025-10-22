@@ -41,8 +41,9 @@ export const startChat = async (req, res) => {
       });
     }
 
-    // Generate interview questions using OpenAI
-    const questionsPrompt = generateQuestionsPrompt(jobDescription.extractedText);
+    // Generate interview questions using OpenAI (10 questions)
+    const numberOfQuestions = 10;
+    const questionsPrompt = generateQuestionsPrompt(jobDescription.extractedText, numberOfQuestions);
     
     const client = getOpenAIClient();
     const completion = await client.chat.completions.create({
@@ -51,19 +52,35 @@ export const startChat = async (req, res) => {
         { role: "system", content: getSystemPrompt() },
         { role: "user", content: questionsPrompt }
       ],
-      temperature: 0.7,
-      max_tokens: 500
+      temperature: 0.8,
+      max_tokens: 1000
     });
 
     let questions;
     try {
-      questions = JSON.parse(completion.choices[0].message.content);
+      const content = completion.choices[0].message.content.trim();
+      // Remove any markdown code blocks if present
+      const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+      questions = JSON.parse(cleanContent);
+      
+      // Ensure we have the right number of questions
+      if (!Array.isArray(questions) || questions.length < numberOfQuestions) {
+        throw new Error('Invalid questions format');
+      }
     } catch (error) {
-      // Fallback if JSON parsing fails
+      console.error('Error parsing questions:', error);
+      // Fallback questions based on job description
       questions = [
-        "Tell me about your relevant experience for this role.",
-        "What skills from the job description do you possess?",
-        "Why are you interested in this position?"
+        "Tell me about your most relevant experience for this role and how it aligns with the job requirements.",
+        "What specific technical skills from the job description do you possess, and can you provide examples of how you've used them?",
+        "Describe a challenging project you've worked on that relates to this position. What was your role and the outcome?",
+        "How do you stay updated with the latest technologies and trends relevant to this field?",
+        "Can you walk me through your approach to problem-solving when faced with a technical challenge?",
+        "Tell me about a time you worked in a team. What was your contribution and how did you handle any conflicts?",
+        "Describe a situation where you had to learn a new technology or skill quickly. How did you approach it?",
+        "What interests you most about this role, and how does it fit into your career goals?",
+        "Can you share an example of how you handled a tight deadline or competing priorities?",
+        "Where do you see yourself growing in this role, and what value can you bring to our team?"
       ];
     }
 
